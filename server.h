@@ -2,6 +2,7 @@
 #define SERVER_H
 
 #include "sslserver.h"
+#include <QFile>
 
 
 class Server : public QObject
@@ -13,6 +14,8 @@ public:
 
     bool start(uint port);
     void stop();
+
+    bool loadCertAndKey(QString certPath, QString keyPath);
 
 protected slots:
     /* working slots to receive signals from sockets */
@@ -27,6 +30,8 @@ protected slots:
 
 private:
     SslServer server;
+    QByteArray key;
+    QByteArray certificate;
 };
 
 #endif // SERVER_H

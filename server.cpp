@@ -23,9 +23,34 @@ void Server::stop()
         server.close();
 }
 
+bool Server::loadCertAndKey(QString certPath, QString keyPath)
+{
+    QFile fileCert(certPath);
+    if(fileCert.open(QIODevice::ReadOnly)){
+        certificate = fileCert.readAll();
+        fileCert.close();
+        std::cout << "Certificate loaded" << std::endl;
+    } else{
+        std::cout << "Certificate: " << fileCert.errorString().toStdString() << std::endl;
+        return 0;
+    }
+
+    QFile fileKey(keyPath);
+    if(fileKey.open(QIODevice::ReadOnly)){
+        key = fileKey.readAll();
+        fileKey.close();
+        std::cout << "Key loaded" << std::endl;
+    } else{
+        std::cout << "Key: " << fileKey.errorString().toStdString() << std::endl;
+        return 0;
+    }
+
+    return 1;
+}
+
 void Server::acceptConnection()
 {
-    QSslSocket * socket = dynamic_cast<QSslSocket*>(sender());
+    QSslSocket * socket = dynamic_cast<QSslSocket*>(server.nextPendingConnection());
 
     // QSslSocket emits the encrypted() signal after the encrypted connection is established
     connect(socket, SIGNAL(encrypted()), this, SLOT(handshakeComplete()));
@@ -40,7 +65,14 @@ void Server::acceptConnection()
               << ":" << socket->peerPort() << " (" << socket->peerName().toStdString() << ")"
               << std::endl;
 
+
+    if(key.count() && certificate.count()){
+        socket->setPrivateKey(key);
+        socket->setLocalCertificate(certificate);
+    }
+
     socket->setPeerVerifyMode(QSslSocket::VerifyNone);
+    //socket->setProtocol(QSsl::SslProtocol::TlsV1_2);
     socket->startServerEncryption();
 }
 
@@ -64,7 +96,7 @@ void Server::receiveMessage()
               << ":" << socket->peerPort() << " (" << socket->peerName().toStdString()
               << ") size:" << socket->bytesAvailable() << "byte(s) :" << std::endl;
     while(socket->bytesAvailable())
-            std::cout << socket->readAll().constData();
+        std::cout << socket->readAll().constData();
 
     std::cout << socket->readLine().constData();
     std::cout << "--END--" << std::endl;
@@ -90,7 +122,7 @@ void Server::sslErrors(const QList<QSslError> &errors)
               << ") because: " << std::endl;
 
     foreach (QSslError error, errors)
-       std::cout << "   *" << error.errorString().toStdString() << std::endl;
+        std::cout << "   *" << error.errorString().toStdString() << std::endl;
 }
 
 void Server::connectionFailure()
