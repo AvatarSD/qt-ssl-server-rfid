@@ -66,13 +66,16 @@ void Server::acceptConnection()
               << std::endl;
 
 
-    if(key.count() && certificate.count()){
+    if(key.count() & certificate.count()){
         socket->setPrivateKey(key);
         socket->setLocalCertificate(certificate);
+        std::cout << "Cert and Key set!" << std::endl;
+    }else{
+        std::cout << "Cert and Key was not set" << std::endl;
     }
 
     socket->setPeerVerifyMode(QSslSocket::VerifyNone);
-    //socket->setProtocol(QSsl::SslProtocol::TlsV1_2);
+    socket->setProtocol(QSsl::SslProtocol::TlsV1_2);
     socket->startServerEncryption();
 }
 
