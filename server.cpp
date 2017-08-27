@@ -69,7 +69,8 @@ void Server::acceptConnection()
     if(key.count() & certificate.count()){
         socket->setPrivateKey(key);
         socket->setLocalCertificate(certificate);
-        std::cout << "Cert and Key set!" << std::endl;
+        std::cout << "Cert and Key set!\r\nkey:\r\n" << key.toStdString()
+                  << "\r\ncert:\r\n" << certificate.toStdString() << std::endl;
     }else{
         std::cout << "Cert and Key was not set" << std::endl;
     }
